@@ -11,6 +11,7 @@ using System.Reactive.Linq;
 using ReactiveUI.Fody.Helpers;
 using Realms;
 using DynamicData.Binding;
+using DynamicData.Aggregation;
 using System.Collections.Generic;
 
 namespace Demo
@@ -39,28 +40,18 @@ namespace Demo
             _realm = Realm.GetInstance();
             Companies = _realm.All<Company>();
 
-            //    _companies = new SourceList<Company>();
-            //    _companies.AddRange(new[]
-            //    {
-            //    new Company{Name="EPF CORPORATION"},
-            //    new Company{Name="ABC COMPANY PVT. LTD."},
-            //    new Company{Name="UNIQUE COMPUTER SYSTEMS"},
-            //    new Company{Name="MICROSOFT PRIVATE LIMITED"},
-            //});
+
 
             // Delay to once every 500 milliseconds doing an update.
             // var refreshObs = this.WhenAnyValue(x => x.Query).Throttle(TimeSpan.FromMilliseconds(500));
-            this.WhenAnyValue(x => x.Query).InvokeCommand(Search);
-            //_companies.Connect()
-            // .AutoRefreshOnObservable(_ => refreshObs)
-            // .Filter(m => Query == null || m.Name.IndexOf(Query, StringComparison.CurrentCultureIgnoreCase) >= 0)
-            //.Sort(SortExpressionComparer<Company>.Ascending(t => t.Name))
-            // .ObserveOn(RxApp.MainThreadScheduler)
-            //.Bind(out _sortedCompanies)
-            //.Subscribe();
+            this.WhenAnyValue(x => x.Query).Select(query => !String.IsNullOrWhiteSpace(query)).Throttle(TimeSpan.FromSeconds(1)).InvokeCommand(this, x => x.Search);
 
             ButtonClickedCommand = ReactiveCommand.CreateFromTask(async () => await AddButtonClicked());
-            Search = ReactiveCommand.CreateFromTask(async () => await SortCollection());
+            Search = ReactiveCommand.CreateFromObservable(
+                () =>
+                   Observable
+                   .StartAsync(SortCollection)
+            );
         }
 
 
