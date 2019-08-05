@@ -20,7 +20,7 @@ namespace Demo
     public class MainViewModel : ReactiveObject
     {
         readonly ObservableAsPropertyHelper<IEnumerable<Company>> companies;
-        public IEnumerable<Company> Companies => this.companies.Value;
+        public IEnumerable<Company> Companies { get; set; }
 
         string query;
         public string Query
@@ -44,16 +44,16 @@ namespace Demo
             Companies = _realm.All<Company>();
 
             AddCompanyCommand = ReactiveCommand.CreateFromTask(async () => await AddButtonClicked());
-            SearchCommand = ReactiveCommand.CreateFromObservable(
-                () =>
-                Observable
-                .StartAsync(SortCollection)
+            SearchCommand = ReactiveCommand.Create<Unit, IEnumerable<Company>>(
+                _ =>
+
+                SortCollection()
                 );
 
-            this.companies = SearchCommand.ToProperty(this, x => x.Companies);
+            companies = SearchCommand.ToProperty(this, x => x.Companies);
 
 
-            this.WhenAnyValue(x => x.Query).Where(query => !String.IsNullOrWhiteSpace(query)).Throttle(TimeSpan.FromSeconds(1)).Select(_ => Unit.Default).InvokeCommand(this, x => x.SearchCommand);
+            this.WhenAnyValue(x => x.Query).Throttle(TimeSpan.FromSeconds(1)).Select(_ => Unit.Default).InvokeCommand(this, x => x.SearchCommand);
         }
 
         async Task AddButtonClicked()
@@ -68,12 +68,21 @@ namespace Demo
             }
         }
 
-        async Task<IEnumerable<Company>> SortCollection()
+        IEnumerable<Company> SortCollection()
         {
+            if (string.IsNullOrWhiteSpace(Query))
+            {
+                Companies = Companies.Where(x => x.Name != string.Empty);
+            }
+            else
+            {
+                Companies = Companies.Where(x => x.Name.IndexOf(query, StringComparison.InvariantCultureIgnoreCase) >= 0);
+            }
 
+            return Companies;
 
-            return _realm.All<Company>().OrderBy(m => m.Name).Where(company => company.Name.ToLower().Contains(Query.ToLower()));
 
         }
+
     }
 }
