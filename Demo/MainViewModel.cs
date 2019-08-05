@@ -19,18 +19,26 @@ namespace Demo
 
     public class MainViewModel : ReactiveObject
     {
+        IEnumerable<Company> companies;
+        public IEnumerable<Company> Companies
+        {
+            get => companies;
+            set => this.RaiseAndSetIfChanged(ref this.companies, value);
+        }
 
-        public IEnumerable<Company> Companies { get; set; }
 
-
-        [Reactive]
-        public string Query { get; set; }
+        string query;
+        public string Query
+        {
+            get => query;
+            set => this.RaiseAndSetIfChanged(ref query, value);
+        }
 
         [Reactive]
         public string NewCompany { get; set; }
 
-        public ReactiveCommand<Unit, Unit> ButtonClickedCommand { get; set; }
-        public ReactiveCommand<Unit, Unit> Search { get; set; }
+        public ReactiveCommand<Unit, Unit> AddCompanyCommand { get; set; }
+        public ReactiveCommand<Unit, Unit> SearchCommand { get; set; }
 
         Realm _realm;
 
@@ -40,21 +48,13 @@ namespace Demo
             _realm = Realm.GetInstance();
             Companies = _realm.All<Company>();
 
+            AddCompanyCommand = ReactiveCommand.CreateFromTask(async () => await AddButtonClicked());
+            SearchCommand = ReactiveCommand.CreateFromTask(async () => await SortCollection());
 
 
-            // Delay to once every 500 milliseconds doing an update.
-            // var refreshObs = this.WhenAnyValue(x => x.Query).Throttle(TimeSpan.FromMilliseconds(500));
-            this.WhenAnyValue(x => x.Query).Select(query => !String.IsNullOrWhiteSpace(query)).Throttle(TimeSpan.FromSeconds(1)).InvokeCommand(this, x => x.Search);
 
-            ButtonClickedCommand = ReactiveCommand.CreateFromTask(async () => await AddButtonClicked());
-            Search = ReactiveCommand.CreateFromObservable(
-                () =>
-                   Observable
-                   .StartAsync(SortCollection)
-            );
+            this.WhenAnyValue(x => x.Query).Where(query => !String.IsNullOrWhiteSpace(query)).Throttle(TimeSpan.FromSeconds(1)).Select(_ => Unit.Default).InvokeCommand(this, x => x.SearchCommand);
         }
-
-
 
         async Task AddButtonClicked()
         {
@@ -70,6 +70,7 @@ namespace Demo
 
         async Task SortCollection()
         {
+
 
             Companies = _realm.All<Company>().OrderBy(m => m.Name).Where(company => company.Name.ToLower().Contains(Query.ToLower()));
 

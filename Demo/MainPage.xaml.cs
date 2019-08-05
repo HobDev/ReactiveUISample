@@ -23,7 +23,7 @@ namespace Demo
 
 
             this.Bind(ViewModel, vm => vm.Query, v => v.SearchHandler.Text);
-            this.BindCommand(ViewModel, vm => vm.ButtonClickedCommand, v => v.AddButton);
+            this.BindCommand(ViewModel, vm => vm.AddCompanyCommand, v => v.AddButton);
             this.Bind(ViewModel, vm => vm.NewCompany, v => v.NewCompanyEntry.Text);
             this.OneWayBind(ViewModel, vm => vm.Companies, view => view.CompaniesListView.ItemsSource);
 
