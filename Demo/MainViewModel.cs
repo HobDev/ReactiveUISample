@@ -19,15 +19,12 @@ namespace Demo
 
     public class MainViewModel : ReactiveObject
     {
-        readonly ObservableAsPropertyHelper<IEnumerable<Company>> companies;
+
         public IEnumerable<Company> Companies { get; set; }
 
-        string query;
-        public string Query
-        {
-            get => query;
-            set => this.RaiseAndSetIfChanged(ref query, value);
-        }
+        [Reactive]
+        public string Query { get; set; }
+
 
         [Reactive]
         public string NewCompany { get; set; }
@@ -41,6 +38,7 @@ namespace Demo
         {
 
             _realm = Realm.GetInstance();
+
             Companies = _realm.All<Company>();
 
             AddCompanyCommand = ReactiveCommand.CreateFromTask(async () => await AddButtonClicked());
@@ -50,10 +48,12 @@ namespace Demo
                 SortCollection()
                 );
 
-            companies = SearchCommand.ToProperty(this, x => x.Companies);
 
+            SearchCommand.ToProperty(this, nameof(Companies));
 
             this.WhenAnyValue(x => x.Query).Throttle(TimeSpan.FromSeconds(1)).Select(_ => Unit.Default).InvokeCommand(this, x => x.SearchCommand);
+
+
         }
 
         async Task AddButtonClicked()
@@ -76,7 +76,7 @@ namespace Demo
             }
             else
             {
-                Companies = Companies.Where(x => x.Name.IndexOf(query, StringComparison.InvariantCultureIgnoreCase) >= 0);
+                Companies = Companies.Where(x => x.Name.IndexOf(Query, StringComparison.InvariantCultureIgnoreCase) >= 0);
             }
 
             return Companies;

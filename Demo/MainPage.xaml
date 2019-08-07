@@ -16,7 +16,8 @@
     <ContentPage.Content>
 
         <StackLayout>
-            <ListView x:Name="CompaniesListView">
+            <ListView x:Name="CompaniesListView"
+                      HasUnevenRows="True">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <ViewCell>
