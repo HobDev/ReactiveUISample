@@ -27,7 +27,6 @@ namespace Demo
             this.Bind(ViewModel, vm => vm.NewCompany, v => v.NewCompanyEntry.Text);
             this.OneWayBind(ViewModel, vm => vm.Companies, view => view.CompaniesListView.ItemsSource);
 
-
         }
     }
 }
