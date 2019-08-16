@@ -2,26 +2,23 @@
 using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using Xamarin.Forms;
 using System.Reactive;
-using System.Linq;
-using System.Windows.Input;
 using DynamicData;
 using System.Reactive.Linq;
 using ReactiveUI.Fody.Helpers;
 using Realms;
-using DynamicData.Binding;
-using DynamicData.Aggregation;
-using System.Collections.Generic;
+using System.Linq;
 
 namespace Demo
 {
 
     public class MainViewModel : ReactiveObject
     {
-        //readonly ObservableAsPropertyHelper<IEnumerable<Company>> companies;
-        //public IEnumerable<Company> BindList => this.companies.Value;
-        public IEnumerable<Company> Companies { get; set; }
+        private readonly SourceCache<Company, string> _Companies;
+        private readonly ReadOnlyObservableCollection<Company> _sortedCompanies;
+        public ReadOnlyObservableCollection<Company> Companies => _sortedCompanies;
+
+
 
         [Reactive]
         public string Query { get; set; }
@@ -29,8 +26,7 @@ namespace Demo
         [Reactive]
         public string NewCompany { get; set; }
 
-        public ReactiveCommand<Unit, IEnumerable<Company>> AddCompanyCommand { get; set; }
-        public ReactiveCommand<Unit, IEnumerable<Company>> SearchCommand { get; set; }
+        public ReactiveCommand<Unit, Unit> AddCompanyCommand { get; set; }
 
         Realm _realm;
 
@@ -38,23 +34,24 @@ namespace Demo
         {
 
             _realm = Realm.GetInstance();
+            _Companies = new SourceCache<Company, string>(company => company.Id);
+            _Companies.AddOrUpdate(_realm.All<Company>());
 
-            Companies = _realm.All<Company>();
+            var refreshObs = this.WhenAnyValue(x => x.Query).Throttle(TimeSpan.FromMilliseconds(500));
+            var dataConnection = _Companies.Connect();
 
+            dataConnection
+                .AutoRefreshOnObservable(_ => refreshObs)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Filter(m => Query == null || m.Name.IndexOf(Query, StringComparison.CurrentCultureIgnoreCase) >= 0)
+                .Bind(out _sortedCompanies)
+                .Subscribe();
 
-            AddCompanyCommand = ReactiveCommand.Create<Unit, IEnumerable<Company>>(_ => AddButtonClicked());
-            SearchCommand = ReactiveCommand.Create<Unit, IEnumerable<Company>>(_ => SortCollection());
-
-
-            SearchCommand.ToProperty(this, x => x.Companies);
-            AddCompanyCommand.ToProperty(this, x => x.Companies);
-
-            this.WhenAnyValue(x => x.Query).Throttle(TimeSpan.FromSeconds(1)).Select(_ => Unit.Default).InvokeCommand(this, x => x.SearchCommand);
-
+            AddCompanyCommand = ReactiveCommand.CreateFromTask(async () => await AddCompany());
 
         }
 
-        IEnumerable<Company> AddButtonClicked()
+        async Task AddCompany()
         {
             if (!string.IsNullOrWhiteSpace(NewCompany))
             {
@@ -63,30 +60,9 @@ namespace Demo
                     _realm.Add(new Company { Name = NewCompany });
                 });
                 NewCompany = string.Empty;
-
             }
-            Companies = Companies.Where(x => x.Name != string.Empty);
-            return Companies;
+            _Companies.AddOrUpdate(_realm.All<Company>());
         }
-
-
-        IEnumerable<Company> SortCollection()
-        {
-            if (string.IsNullOrWhiteSpace(Query))
-            {
-                Companies = Companies.Where(x => x.Name != string.Empty);
-                return Companies;
-
-            }
-
-            Companies = Companies.Where(x => x.Name.IndexOf(Query, StringComparison.InvariantCultureIgnoreCase) >= 0);
-
-            return Companies;
-
-        }
-
-
-
     }
 }
 
