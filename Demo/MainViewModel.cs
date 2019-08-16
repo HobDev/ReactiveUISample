@@ -34,6 +34,7 @@ namespace Demo
         {
 
             _realm = Realm.GetInstance();
+            _realm.RealmChanged += (s, e) => { _Companies.AddOrUpdate(_realm.All<Company>()); };
             _Companies = new SourceCache<Company, string>(company => company.Id);
             _Companies.AddOrUpdate(_realm.All<Company>());
 
@@ -61,7 +62,7 @@ namespace Demo
                 });
                 NewCompany = string.Empty;
             }
-            _Companies.AddOrUpdate(_realm.All<Company>());
+
         }
     }
 }
