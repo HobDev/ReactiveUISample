@@ -35,7 +35,8 @@
     <WarningLevel>4</WarningLevel>
     <MtouchLink>None</MtouchLink>
     <MtouchArch>x86_64</MtouchArch>
-    <MtouchEnableSGenConc></MtouchEnableSGenConc>
+    <MtouchEnableSGenConc>
+    </MtouchEnableSGenConc>
     <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
@@ -123,19 +124,19 @@
     <Reference Include="System.Numerics.Vectors" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Xamarin.Forms" Version="4.1.0.673156" />
-    <PackageReference Include="Xamarin.Essentials" Version="1.2.0" />
+    <PackageReference Include="Xamarin.Forms" Version="4.8.0.1687" />
+    <PackageReference Include="Xamarin.Essentials" Version="1.5.3.2" />
     <PackageReference Include="ReactiveUI">
-      <Version>9.20.1</Version>
+      <Version>12.1.5</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.XamForms">
-      <Version>9.20.1</Version>
+      <Version>12.1.5</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.Fody">
-      <Version>9.20.1</Version>
+      <Version>12.1.5</Version>
     </PackageReference>
     <PackageReference Include="Realm">
-      <Version>4.1.0</Version>
+      <Version>5.1.2</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
