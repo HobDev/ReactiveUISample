@@ -13,7 +13,7 @@ namespace InplaceSearching
             InitializeComponent();
             Shell.SetTitleView(this, new SearchBar
             {
-                Placeholder="Select Company"
+              Placeholder="Select Company"
             }.Bind(SearchBar.TextProperty, nameof(viewModel.Query)));
 
             CollectionView collection=new CollectionView();
@@ -38,11 +38,19 @@ namespace InplaceSearching
             collection.Bind(ItemsView.ItemsSourceProperty,nameof(viewModel.Companies));
             collection.Bind(SelectableItemsView.SelectedItemProperty,nameof(viewModel.SelectedCompany));
 
-            collection.Footer = new VerticalStackLayout
+          
+            Content = new ScrollView
             {
-                 new Border
+                Content = new VerticalStackLayout
+                {
+                    Children =
+                    {
+                        collection,
+                        new Border
             {
-                    StrokeThickness=0,
+                    StrokeThickness=1,
+                    Stroke= new SolidColorBrush(Colors.Black),  
+                    BackgroundColor=Colors.Transparent,
                     Padding=new Thickness(8,4),
                     HorizontalOptions=LayoutOptions.Fill,
                     StrokeShape=new RoundRectangle { CornerRadius=new CornerRadius(10)},
@@ -52,10 +60,9 @@ namespace InplaceSearching
                     }.Bind(Entry.TextProperty, nameof(viewModel.NewCompany))
             },
                  new Button{Text="Add", HorizontalOptions=LayoutOptions.Center}.BindCommand(nameof(viewModel.AddCompanyCommand))
+                    }
+                }
             };
-                
-           
-
             BindingContext = viewModel;
         }
 
