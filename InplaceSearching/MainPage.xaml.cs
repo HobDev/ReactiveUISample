@@ -13,56 +13,69 @@ namespace InplaceSearching
             InitializeComponent();
             Shell.SetTitleView(this, new SearchBar
             {
-              Placeholder="Select Company"
+              Placeholder="Search Names"
             }.Bind(SearchBar.TextProperty, nameof(viewModel.Query)));
 
             CollectionView collection=new CollectionView();
-            DataTemplate dataTemplate = new DataTemplate(()=>
+            collection.ItemTemplate = new DataTemplate(()=>
             {
-                VerticalStackLayout layout=new VerticalStackLayout
+                SwipeView swipeView= new SwipeView();
+                SwipeItem deleteSwipeItem = new SwipeItem()
                 {
-                    new Label{}.Bind(Label.TextProperty, nameof(Company.Name)),
-                    new BoxView{HorizontalOptions=LayoutOptions.Fill, HeightRequest=1, Color=Colors.BlueViolet}
+                    Text = "Delete",
+                    BackgroundColor = Colors.Red,
                 };
+                deleteSwipeItem.Bind(MenuItem.CommandProperty,nameof(viewModel.DeletePersonCommand), source: viewModel);
+                deleteSwipeItem.Bind(MenuItem.CommandParameterProperty, ".");
+                Grid layout=new Grid
+                {
+                    Padding=10,
+                  BackgroundColor=Colors.AliceBlue,
+                    Children=
+                    {
+                       new Label{FontSize=15, TextColor=Colors.Black}.Bind(Label.TextProperty, nameof(Person.Name)),
+                    }
+                   
+                }.Margins(0,0,0,5);
 
-                return layout;
+                swipeView.RightItems.Add(deleteSwipeItem);
+                swipeView.Content = layout;
+                return swipeView;
             });
 
-            collection.ItemTemplate= dataTemplate;
-            collection.ItemSizingStrategy = ItemSizingStrategy.MeasureFirstItem;
             collection.SelectionMode= SelectionMode.None;
+            collection.ItemSizingStrategy = ItemSizingStrategy.MeasureFirstItem;
             collection.ItemsLayout = new LinearItemsLayout(ItemsLayoutOrientation.Vertical)
             {
                 ItemSpacing=5,
             };
-            collection.Bind(ItemsView.ItemsSourceProperty,nameof(viewModel.Companies));
-            collection.Bind(SelectableItemsView.SelectedItemProperty,nameof(viewModel.SelectedCompany));
+            collection.Bind(ItemsView.ItemsSourceProperty,nameof(viewModel.Names));
+            collection.EmptyView = new Label { Text = "Empty! Add new Names" };
 
-          
-            Content = new ScrollView
+
+            Content = new VerticalStackLayout
             {
-                Content = new VerticalStackLayout
-                {
-                    Children =
+               
+                Children =
                     {
                         collection,
                         new Border
             {
                     StrokeThickness=1,
-                    Stroke= new SolidColorBrush(Colors.Black),  
+                    Stroke= new SolidColorBrush(Colors.Black),
                     BackgroundColor=Colors.Transparent,
                     Padding=new Thickness(8,4),
                     HorizontalOptions=LayoutOptions.Fill,
                     StrokeShape=new RoundRectangle { CornerRadius=new CornerRadius(10)},
                     Content= new Entry
                     {
-                        Placeholder="Company Name",
-                    }.Bind(Entry.TextProperty, nameof(viewModel.NewCompany))
-            },
-                 new Button{Text="Add", HorizontalOptions=LayoutOptions.Center}.BindCommand(nameof(viewModel.AddCompanyCommand))
+                        Placeholder="New Name",
+                    }.Bind(Entry.TextProperty, nameof(viewModel.NewPerson))
+            }.Margins(0,20,0,0),
+                 new Button{Text="Add", WidthRequest=100, HorizontalOptions=LayoutOptions.Center}.BindCommand(nameof(viewModel.AddPersonCommand))
                     }
-                }
-            };
+            }.Margins(15, 10, 15, 15);
+
             BindingContext = viewModel;
         }
 

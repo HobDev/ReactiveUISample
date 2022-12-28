@@ -5,7 +5,7 @@ using Realms;
 
 namespace InplaceSearching
 {
-    public class Company: RealmObject
+    public class Person: RealmObject
     {
 
         [PrimaryKey]
