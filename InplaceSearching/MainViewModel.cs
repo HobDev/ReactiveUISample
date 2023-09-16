@@ -37,7 +37,7 @@ namespace InplaceSearching
         {
             realm = Realm.GetInstance();
             IQueryable<Person> allNames = realm.All<Person>();
-            allNames.SubscribeForNotifications((sender, changes, error) =>
+            allNames.SubscribeForNotifications((sender, changes) =>
             {
                 _Names.AddOrUpdate(allNames);
             });
